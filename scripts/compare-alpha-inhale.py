@@ -174,15 +174,15 @@ if __name__ == '__main__':
             'sigma_U': 1.e-4,
             'beta_L': 1.e-6, 'p_L': 1.1e5, 'c_L': 209, 'w_L': 4.5e-4,
             'sigma_L': 0.11, 'mu': 9,
-            'a_conduct': 0, 'a_inhale': 0.
+            'a_conduct': 1.e-5, 'a_inhale': 0.
         },
     ]
 
-    a_conduct_list = [1.e-5, 1.e-4, 1.e-3, 1.e-2, .1, .2, .4, .8]
+    a_inhale_list = [1.e-5, 1.e-4, 1.e-3, 1.e-2, .1, .2, .4, .8]
     URTs = []
     LRTs = []
-    for a_conduct in a_conduct_list:
-        hosts[0]['a_conduct'] = a_conduct
+    for a_inhale in a_inhale_list:
+        hosts[0]['a_inhale'] = a_inhale
         T_list, t_list = inhost_viral_model_solver(conf, gConf, hosts)
         URTs.append(T_list[:, 1, 1, 1, 3])
         LRTs.append(T_list[:, 1, 1, 1, 7])
