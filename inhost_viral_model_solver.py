@@ -7,7 +7,6 @@ import math
 import pickle
 
 # Third-party modules
-import matplotlib.pyplot as plt
 import numpy as np
 
 # Local modules
@@ -90,7 +89,7 @@ def inhost_viral_model_solver(conf, gConf, hosts):
     v_n = np.ones(gConf['ng'])
     # advection-diffusion in the system
     kdiff = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
-    kdiff[:, :, :, -1] = 1.e8
+    kdiff[:, :, :, -1] = 1.e10
     # advection velocity
     u = np.zeros((conf['ndim_vel'], gConf['nx']+1, gConf['ny']+1,
                   gConf['nz']+1, gConf['ng']))
@@ -151,7 +150,7 @@ if __name__ == '__main__':
     }
     gConf = {
         # number of cells in the simulation
-        'nx': 3, 'ny': 3, 'nz': 3,
+        'nx': 5, 'ny': 5, 'nz': 3,
         # number of equations (energy group)
         'ng': 9, 'ng2': 9,
         # error tolerances
@@ -178,22 +177,60 @@ if __name__ == '__main__':
             'sigma_L': 0.11, 'mu': 9,
             'a_conduct': 2 ** -6, 'a_inhale': 0.
         },
+        # patient #7 URT & LRT (Wang, S. et al. 2020)
+        {
+            'x': 1, 'y': 3, 'z': 1,
+            'T1_0_U': T1_0, 'T2_0_U': T2_0, 'I_0_U': I_0, 'V_0_U': 0,
+            'T1_0_L': T1_0, 'T2_0_L': T2_0, 'I_0_L': I_0, 'V_0_L': 0,
+            'lam': lam, 'delta_I': delta_I,
+            'beta_U': 9.9e-7, 'p_U': 1.08e4, 'c_U': 48, 'w_U': 2.1e-4,
+            'sigma_U': 1.e-4,
+            'beta_L': 1.e-6, 'p_L': 1.1e5, 'c_L': 209, 'w_L': 4.5e-4,
+            'sigma_L': 0.11, 'mu': 9,
+            'a_conduct': 2 ** -6, 'a_inhale': 1.
+        },
+        # patient #7 URT & LRT (Wang, S. et al. 2020)
+        {
+            'x': 3, 'y': 1, 'z': 1,
+            'T1_0_U': T1_0, 'T2_0_U': T2_0, 'I_0_U': I_0, 'V_0_U': 0,
+            'T1_0_L': T1_0, 'T2_0_L': T2_0, 'I_0_L': I_0, 'V_0_L': 0,
+            'lam': lam, 'delta_I': delta_I,
+            'beta_U': 9.9e-7, 'p_U': 1.08e4, 'c_U': 48, 'w_U': 2.1e-4,
+            'sigma_U': 1.e-4,
+            'beta_L': 1.e-6, 'p_L': 1.1e5, 'c_L': 209, 'w_L': 4.5e-4,
+            'sigma_L': 0.11, 'mu': 9,
+            'a_conduct': 2 ** -6, 'a_inhale': .5
+        },
+        # patient #7 URT & LRT (Wang, S. et al. 2020)
+        {
+            'x': 3, 'y': 3, 'z': 1,
+            'T1_0_U': T1_0, 'T2_0_U': T2_0, 'I_0_U': I_0, 'V_0_U': 0,
+            'T1_0_L': T1_0, 'T2_0_L': T2_0, 'I_0_L': I_0, 'V_0_L': 0,
+            'lam': lam, 'delta_I': delta_I,
+            'beta_U': 9.9e-7, 'p_U': 1.08e4, 'c_U': 48, 'w_U': 2.1e-4,
+            'sigma_U': 1.e-4,
+            'beta_L': 1.e-6, 'p_L': 1.1e5, 'c_L': 209, 'w_L': 4.5e-4,
+            'sigma_L': 0.11, 'mu': 9,
+            'a_conduct': 2 ** -6, 'a_inhale': 1.e-3
+        },
     ]
 
-    a_inhale_list = [2 ** -i for i in range(3)] + [0]
     URTs = []
     LRTs = []
-    for a_inhale in a_inhale_list:
-        hosts[0]['a_inhale'] = a_inhale
-        T_list, t_list = inhost_viral_model_solver(conf, gConf, hosts)
-        URTs.append(T_list[:, 1, 1, 1, 3])
-        LRTs.append(T_list[:, 1, 1, 1, 7])
+    T_list, t_list = inhost_viral_model_solver(conf, gConf, hosts)
+    URTs.append(T_list[:, 1, 1, 1, 3])
+    URTs.append(T_list[:, 1, 3, 1, 3])
+    URTs.append(T_list[:, 3, 1, 1, 3])
+    URTs.append(T_list[:, 3, 3, 1, 3])
+    LRTs.append(T_list[:, 1, 1, 1, 7])
+    LRTs.append(T_list[:, 1, 3, 1, 7])
+    LRTs.append(T_list[:, 3, 1, 1, 7])
+    LRTs.append(T_list[:, 3, 3, 1, 7])
 
     saveDict = {
         'URTs': URTs,
         'LRTs': LRTs,
         't_list': t_list,
-        'a_inhale_list': a_inhale_list
     }
     with open('tmp.pkl', 'wb') as f:
         pickle.dump(saveDict, f, pickle.HIGHEST_PROTOCOL)

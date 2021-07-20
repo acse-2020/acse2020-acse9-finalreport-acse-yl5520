@@ -14,10 +14,9 @@ if __name__ == '__main__':
     URTs = loadDict['URTs']
     LRTs = loadDict['LRTs']
     t_list = loadDict['t_list']
-    a_inhale_list = loadDict['a_inhale_list']
 
-    fig, axs = plt.subplots(2, 2, figsize=(24, 18))
-    for ax, urt, lrt, a_conduct in zip(axs.flatten(), URTs, LRTs, a_inhale_list):
+    fig, axs = plt.subplots(2, 2, figsize=(16, 12))
+    for ax, urt, lrt in zip(axs.flatten(), URTs, LRTs):
         ax.semilogy(t_list, urt, label='URT')
         ax.semilogy(t_list, lrt, label='LRT')
         ax.plot([-5, 35], [1e2, 1e2], ':')
@@ -25,7 +24,10 @@ if __name__ == '__main__':
         ax.set_ylim(1, 1e14)
         ax.set_xlabel('time (day)')
         ax.set_ylabel('viral load')
-        ax.set_title(f'conduct={a_conduct}')
         ax.legend(loc='best')
+    axs.flatten()[0].set_title('patient')
+    axs.flatten()[1].set_title('inhale=1.')
+    axs.flatten()[2].set_title('inhale=.5')
+    axs.flatten()[3].set_title('inhale=1.e-3')
     plt.tight_layout()
     plt.savefig('tmp.png')
