@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# python version: 3.8.2
+# python version 3.6.14 +
 
 
 # Standard modules
 import math
+import pickle
 
 # Third-party modules
 import matplotlib.pyplot as plt
@@ -89,6 +90,7 @@ def inhost_viral_model_solver(conf, gConf, hosts):
     v_n = np.ones(gConf['ng'])
     # advection-diffusion in the system
     kdiff = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
+    kdiff[:, :, :, -1] = 1.e8
     # advection velocity
     u = np.zeros((conf['ndim_vel'], gConf['nx']+1, gConf['ny']+1,
                   gConf['nz']+1, gConf['ng']))
@@ -174,29 +176,24 @@ if __name__ == '__main__':
             'sigma_U': 1.e-4,
             'beta_L': 1.e-6, 'p_L': 1.1e5, 'c_L': 209, 'w_L': 4.5e-4,
             'sigma_L': 0.11, 'mu': 9,
-            'a_conduct': 0, 'a_inhale': 0.
+            'a_conduct': 2 ** -6, 'a_inhale': 0.
         },
     ]
 
-    a_conduct_list = [1.e-5, 1.e-4, 1.e-3, 1.e-2, .1, .2, .4, .8]
+    a_inhale_list = [2 ** -i for i in range(3)] + [0]
     URTs = []
     LRTs = []
-    for a_conduct in a_conduct_list:
-        hosts[0]['a_conduct'] = a_conduct
+    for a_inhale in a_inhale_list:
+        hosts[0]['a_inhale'] = a_inhale
         T_list, t_list = inhost_viral_model_solver(conf, gConf, hosts)
         URTs.append(T_list[:, 1, 1, 1, 3])
         LRTs.append(T_list[:, 1, 1, 1, 7])
 
-    fig, axs = plt.subplots(2, 4, figsize=(16, 12))
-    for URT, LRT, a_in, ax in zip(URTs, LRTs, a_inhale_list, axs.flatten()):
-        ax.semilogy(t_list, URT, label='URT')
-        ax.semilogy(t_list, LRT, label='LRT')
-        ax.set_title(f'alpha inhale={a_in}')
-        ax.plot([-5, 35], [1.e2, 1.e2], ':')
-        ax.set_xlim(-1, 31)
-        ax.set_ylim(1, 1.e14)
-        ax.set_xlabel('time (days)')
-        ax.set_ylabel('log10 copies/ml')
-        ax.legend(loc='best')
-
-    plt.show()
+    saveDict = {
+        'URTs': URTs,
+        'LRTs': LRTs,
+        't_list': t_list,
+        'a_inhale_list': a_inhale_list
+    }
+    with open('tmp.pkl', 'wb') as f:
+        pickle.dump(saveDict, f, pickle.HIGHEST_PROTOCOL)
