@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-# python version 3.6.14 +
+# encoding: utf-8
+# version: 3.8.2
 
-
-# Standard modules
+# standard modules
+import argparse
+import json
 import math
+import pathlib
 import pickle
+import sys
+from typing import Tuple
 
-# Third-party modules
-import matplotlib.pyplot as plt
+# third-party modules
 import numpy as np
 
-# Local modules
+# local modules
 import diffusion3d_virus_town_large as dv
 
 
@@ -123,69 +127,88 @@ def inhost_viral_model_solver(conf, gConf, hosts):
     return np.array(T_list), time_list
 
 
+def parseInput() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
+    """ parse input and return arguments and parser
+    """
+    parser = argparse.ArgumentParser(
+        description='inhost viral dynamic model'
+    )
+    parser.add_argument(
+        'modelConf',
+        type=pathlib.Path,
+        help='path/to/model-conf/json/file'
+    )
+    parser.add_argument(
+        'gridConf',
+        type=pathlib.Path,
+        help='path/to/grid-conf/json/file'
+    )
+    parser.add_argument(
+        'hostConf',
+        type=pathlib.Path,
+        help='path/to/host-conf/json/file'
+    )
+    args = parser.parse_args()
+
+    return args, parser
+
+
+const_sec_per_day = 86400
 if __name__ == '__main__':
+    args, parser = parseInput()
+
+    with open(args.modelConf, 'r') as f:
+        args.modelConf = json.load(f)
+
     # global constants (Wang, S. et al. 2020)
-    T1_0 = 6.e4
-    T2_0 = 0
-    I_0 = 0
-    lam = 1.e4
-    delta_I = 2
+    T1_0 = args.modelConf['T1_0']
+    T2_0 = args.modelConf['T2_0']
+    I_0 = args.modelConf['I_0']
+    lam = args.modelConf['lam']
+    delta_I = args.modelConf['delta_I']
 
     # hyper-param
-    const_sec_per_day = 86400
-    d_sec = 60  # amount of second for each time step
-    t_sec = 30 * const_sec_per_day  # amount of second for running the model
-    ntime = 1  # output every n step
-    dt = d_sec / const_sec_per_day  # convert time step unit to day
-    nstep = math.ceil(t_sec / d_sec / ntime)  # amount of steps
+    d_sec = args.modelConf['d_sec']  # amount of second for each time step
+    t_sec = args.modelConf['t_day'] * const_sec_per_day  # amount of second
+    ntime = args.modelConf['ntime']  # output every n step
 
-    conf = {
-        # dt, internal and external iterations
-        'dt': dt, 'ntime': ntime, 'nstep': nstep,
-        # solve a 2D problem
-        'ndim_vel': 2,
-        # non-linear iterations
-        'nits': 3, 'nits_solv_ng': 3,
-        # relaxation value
-        'relax': 1.0,
-    }
-    gConf = {
-        # number of cells in the simulation
-        'nx': 3, 'ny': 3, 'nz': 3,
-        # number of equations (energy group)
-        'ng': 9, 'ng2': 9,
-        # error tolerances
-        'error_solv': 1.e-6, 'error_solv_ng': 1.e-6,
-        # upwind differencing, and harmonic averaging for the diffusion coeff
-        'i_upwind': 1, 'i_harmonic': 0,
-        # spatial discretization
-        'dx': 0.1, 'dy': 0.1, 'dz': 0.1,
-        #
-        'env_0': 0, 'halflife': 0.03125, 'ventilation': 0.,
-        #
-        'gamma_U': 1.e-2, 'gamma_L': 1.e-2
-    }
-    hosts = [
-        # patient #7 URT & LRT (Wang, S. et al. 2020)
-        {
-            'x': 1, 'y': 1, 'z': 1,
-            'T1_0_U': T1_0, 'T2_0_U': T2_0, 'I_0_U': I_0, 'V_0_U': 1.e-4,
-            'T1_0_L': T1_0, 'T2_0_L': T2_0, 'I_0_L': I_0, 'V_0_L': 0,
-            'lam': lam, 'delta_I': delta_I,
-            'beta_U': 9.9e-7, 'p_U': 1.08e4, 'c_U': 48, 'w_U': 2.1e-4,
-            'sigma_U': 1.e-4,
-            'beta_L': 1.e-6, 'p_L': 1.1e5, 'c_L': 209, 'w_L': 4.5e-4,
-            'sigma_L': 0.11, 'mu': 9,
-            'a_conduct': 2 ** -6, 'a_inhale': 0.
-        },
-    ]
+    # prepare model configuration
+    del args.modelConf['T1_0']
+    del args.modelConf['T2_0']
+    del args.modelConf['I_0']
+    del args.modelConf['lam']
+    del args.modelConf['delta_I']
+    del args.modelConf['d_sec']
+    del args.modelConf['t_day']
+    args.modelConf['dt'] = d_sec / const_sec_per_day  # convert time step unit
+    args.modelConf['nstep'] = math.ceil(t_sec / d_sec / ntime)  # total steps
 
+    # prepare grid configuration
+    with open(args.gridConf, 'r') as f:
+        args.gridConf = json.load(f)
+
+    # prepare hosts configuration
+    with open(args.hostConf, 'r') as f:
+        args.hostConf = json.load(f)
+    for i in range(len(args.hostConf)):
+        args.hostConf[i]['T1_0_U'] = T1_0
+        args.hostConf[i]['T1_0_L'] = T1_0
+        args.hostConf[i]['T2_0_U'] = T2_0
+        args.hostConf[i]['T2_0_L'] = T2_0
+        args.hostConf[i]['I_0_U'] = I_0
+        args.hostConf[i]['I_0_L'] = I_0
+        args.hostConf[i]['lam'] = lam
+        args.hostConf[i]['delta_i'] = delta_I
+
+    """
     a_inhale_list = [2 ** -i for i in range(3)] + [0]
     URTs = []
     LRTs = []
     for a_inhale in a_inhale_list:
         hosts[0]['a_inhale'] = a_inhale
-        T_list, t_list = inhost_viral_model_solver(conf, gConf, hosts)
+        T_list, t_list = inhost_viral_model_solver(
+            args.modelConf, args.gridConf, hosts
+        )
         URTs.append(T_list[:, 1, 1, 1, 3])
         LRTs.append(T_list[:, 1, 1, 1, 7])
 
@@ -197,3 +220,4 @@ if __name__ == '__main__':
     }
     with open('tmp.pkl', 'wb') as f:
         pickle.dump(saveDict, f, pickle.HIGHEST_PROTOCOL)
+    """

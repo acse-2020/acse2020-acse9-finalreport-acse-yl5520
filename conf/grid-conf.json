@@ -1,0 +1,19 @@
+{
+    "nx": 3,
+    "ny": 3,
+    "nz": 3,
+    "ng": 9,
+    "ng2": 9,
+    "error_solv": 0.000001,
+    "error_solv_ng": 0.000001,
+    "i_upwind": 1,
+    "i_harmonic": 0,
+    "dx": 0.1,
+    "dy": 0.1,
+    "dz": 0.1,
+    "env_0": 0,
+    "halflife": 0.03125,
+    "ventilation": 0, 
+    "gamma_U": 0.01,
+    "gamma_L": 0.01
+}
