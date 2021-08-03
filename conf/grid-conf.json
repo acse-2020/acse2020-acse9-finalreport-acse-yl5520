@@ -1,0 +1,9 @@
+{
+    "error_solv": 1e-6,
+    "error_solv_ng": 1e-6,
+    "env_0": 0,
+    "halflife": 0.03125,
+    "ventilation": 0, 
+    "gamma_U": 0.01,
+    "gamma_L": 0.01
+}
