@@ -1879,7 +1879,7 @@ SUBROUTINE time_steping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_
             END DO ! DO IG=IG_START, IG_FINISH, IG_STEP
          END DO ! DO IIGG=0,ISWITCH_FBGS ! Switch on FBGS
          ! T_TOTAL(:,:,:,:,ITS_NG)=T_NEW(:,:,:,:)
-         PRINT *,'ITS_NG,R_T_MAX_DIF_NG,ERROR_SOLV_NG:',ITS_NG,R_T_MAX_DIF_NG,ERROR_SOLV_NG
+         ! PRINT *,'ITS_NG,R_T_MAX_DIF_NG,ERROR_SOLV_NG:',ITS_NG,R_T_MAX_DIF_NG,ERROR_SOLV_NG
 
          IF(R_T_MAX_DIF_NG.LT.ERROR_SOLV_NG) EXIT
       END DO ! ITS_G=1,NITS_SOLV_NG
