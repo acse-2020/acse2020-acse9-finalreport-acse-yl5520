@@ -310,8 +310,8 @@ if __name__ == '__main__':
     URTs = []
     LRTs = []
     T_list, t_list = model.inhost_viral_model_solver()
-    URTs.append(T_list[:, 1, 1, 1, 3])
-    LRTs.append(T_list[:, 1, 1, 1, 7])
+    URTs.append(T_list[:, :, :, :, 3])
+    LRTs.append(T_list[:, :, :, :, 7])
 
     saveDict = {
         'URTs': URTs,
