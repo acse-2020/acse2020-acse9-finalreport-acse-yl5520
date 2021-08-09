@@ -1,0 +1,7 @@
+{
+    "env_0": 0,
+    "halflife": 0.03125,
+    "ventilation": 0, 
+    "gamma_U": 0.01,
+    "gamma_L": 0.01
+}

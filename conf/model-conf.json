@@ -1,0 +1,11 @@
+{
+    "d_sec": 60,
+    "t_day": 30,
+    "ntime": 5,
+    "ndim_vel": 2,
+    "nits": 3,
+    "nits_solv_ng": 3,
+    "error_solv": 1e-6,
+    "error_solv_ng": 1e-6,
+    "relax": 1.0
+}
