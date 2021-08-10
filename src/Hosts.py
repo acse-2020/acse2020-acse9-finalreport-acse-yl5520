@@ -72,6 +72,10 @@ class Hosts:
             h[k] = self.const['I_0']
         elif k in ('lam', 'delta_I'):
             h[k] = self.const[k]
+        elif k == 'a_conduct':
+            h[k] = 0.00625
+        elif k == 'a_inhale':
+            h[k] = 0.00625
         else:
             raise NotImplementedError(k)
 
