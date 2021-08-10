@@ -29,7 +29,7 @@ def load_init_terms(gConf: Dict, hosts: Hosts) -> Tuple[List, List]:
 
 
 def update_A(
-    gConf: List, hosts: List,
+    xi: int, gConf: List, hosts: List,
     A_diag: List, A_off_diag: List, T: List, t: float
 ) -> None:
     def delta(delta_I, sigma, mu, t):
@@ -67,7 +67,7 @@ def update_A(
             -h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
             -h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
             -h['a_conduct'], -h['p_L'],
-            -gConf['gamma_U'], -gConf['gamma_L']
+            -xi * gConf['gamma_U'], -xi * gConf['gamma_L']
         )
 
 
@@ -78,13 +78,16 @@ def extract(T: List, hosts: Hosts) -> List:
     return np.array(values)
 
 
-def solver(mConf: Dict, gConf: Dict, hosts: Hosts) -> Tuple[List, List]:
+def solver(
+    mConf: Dict, gConf: Dict, hosts: Hosts, xis: List
+) -> Tuple[List, List]:
     """ An inhost viral model solver using `sim_time_steping_diffusion_calc`
     to solve one or many within-host viral dynamic models simultaneously
 
     :param mConf: model configuration
-    :param gConf: grid  configuration
+    :param gConf: grid configuration
     :param hosts: hosts configuration
+    :param xis: `xi` status at each timestep
 
     :return 1: T1, T2, I, V values of each host at each out-step
     :return 2: time of each out-step
@@ -118,10 +121,10 @@ def solver(mConf: Dict, gConf: Dict, hosts: Hosts) -> Tuple[List, List]:
     T_list = [extract(T, hosts)]
 
     # iteration body
-    for i in range(mConf['nstep']):
+    for i, xi in enumerate(xis):
         print(f"{i + 1}/{mConf['nstep']}", end='\r', flush=True)
         t = time_list[-1] + mConf['dt'] * mConf['ntime']
-        update_A(gConf, hosts, A_diag, A_off_diag, T, t)
+        update_A(xi, gConf, hosts, A_diag, A_off_diag, T, t)
 
         T = dv.sim_time_steping_diffusion_calc(
             T, 1, mConf['nits'], mConf['nits_solv_ng'],
