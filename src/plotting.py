@@ -7,6 +7,7 @@ from typing import Dict
 
 # third-party modules
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_solution(attr: Dict, mode: str, figName: str):
@@ -19,6 +20,9 @@ def plot_solution(attr: Dict, mode: str, figName: str):
         attr['size'], attr['size'],
         figsize=(8 * attr['size'], 5 * attr['size'])
     )
+    if not isinstance(axs, np.ndarray):
+        axs = np.array([axs])
+
     for i, ax in enumerate(axs.flatten()):
         for j in range(len(mode)):
             if mode[j] == '1':
