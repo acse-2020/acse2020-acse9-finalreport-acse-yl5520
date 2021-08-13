@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple
 
 # third-party modeuls
 import numpy as np
+from tqdm import tqdm
 
 # local modules
 import diffusion3d_virus_town_large as dv
@@ -121,8 +122,7 @@ def solver(
     T_list = [extract(T, hosts)]
 
     # iteration body
-    for i, xi in enumerate(xis):
-        print(f"{i + 1}/{mConf['nstep']}", end='\r', flush=True)
+    for i, xi in enumerate(tqdm(xis, dynamic_ncols=True)):
         t = time_list[-1] + mConf['dt'] * mConf['ntime']
         update_A(xi, gConf, hosts, A_diag, A_off_diag, T, t)
 
@@ -140,7 +140,6 @@ def solver(
             T_list.append(extract(T, hosts))
 
     # post processing
-    print()
     if (i + 1) % mConf['ntime']:
         time_list.append(t)
         T_list.append(extract(T, hosts))

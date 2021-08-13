@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# vim editor
+*.swp
+
 # jupyter
 .ipynb_checkpoints/
 presentation.ipynb
