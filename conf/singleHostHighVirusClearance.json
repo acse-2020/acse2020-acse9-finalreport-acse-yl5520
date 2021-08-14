@@ -6,7 +6,7 @@
     "hosts": [
         {
             "V_0_U": 1e-4, "V_0_L": 1e-3,
-            "beta_U": 9.9e-7, "p_U": 1.08e4, "c_U": 48, "w_U": 2.1e-4, "sigma_U": 1.0e-4,
+            "beta_U": 9.9e-7, "p_U": 1.08e4, "c_U": 48, "w_U": 2.1e-4, "sigma_U": 1e-4,
             "beta_L": 1.0e-6, "p_L": 1.1e5, "c_L": 209, "w_L": 4.5e-4, "sigma_L": 0.11,
             "mu": 9,
             "a_conduct": 0, "a_inhale": 0
