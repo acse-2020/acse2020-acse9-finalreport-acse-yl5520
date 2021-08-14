@@ -7,6 +7,7 @@ from typing import Dict
 
 # third-party modules
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_solution(attr: Dict, mode: str, figName: str):
@@ -19,11 +20,14 @@ def plot_solution(attr: Dict, mode: str, figName: str):
         attr['size'], attr['size'],
         figsize=(8 * attr['size'], 5 * attr['size'])
     )
+    if not isinstance(axs, np.ndarray):
+        axs = np.array([axs])
+
     for i, ax in enumerate(axs.flatten()):
         for j in range(len(mode)):
             if mode[j] == '1':
                 ax.semilogy(attr['t'], attr['data'][:, i, j], label=f'{ls[j]}')
-        ax.set_ylim(1, 1e15)
+        ax.set_ylim(1e-9, 1e20)
         ax.set_xlabel('time (day)')
         title = 'normal'
         if attr['patients'][i] == 1:

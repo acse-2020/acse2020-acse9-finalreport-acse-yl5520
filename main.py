@@ -28,23 +28,28 @@ def parseInput() -> argparse.Namespace:
         description='inhost viral dynamic solver driver'
     )
     parser.add_argument(
-        'mConf', nargs='?',
-        default='conf/model-conf.json',
+        '--constant',
+        default='conf/constant-default.json',
         help='path/to/model-conf/json-file'
     )
     parser.add_argument(
-        'hosts', nargs='?',
-        default='conf/hosts-conf.json',
+        '--mConf',
+        default='conf/model-conf-default.json',
+        help='path/to/model-conf/json-file'
+    )
+    parser.add_argument(
+        '--hosts',
+        default='conf/hosts-conf-default.json',
         help='path/to/hosts-conf/json-file'
     )
     parser.add_argument(
-        'gConf', nargs='?',
-        default='conf/grid-conf.json',
+        '--gConf',
+        default='conf/grid-conf-default.json',
         help='path/to/grid-conf/json-file'
     )
     parser.add_argument(
-        'schedule', nargs='?',
-        default='conf/schedule.json',
+        '--schedule',
+        default='conf/schedule-default.json',
         help='path/to/schedule/json-file'
     )
     parser.add_argument(
@@ -76,7 +81,7 @@ def loadConst() -> None:
     global const
 
     try:
-        with open('conf/constant.json', 'r') as fin:
+        with open(args.constant, 'r') as fin:
             const = json.load(fin)
         const = {
             'T1_0': const['T1_0'],

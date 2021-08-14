@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# vim editor
+*.swp
+
+# jupyter
+.ipynb_checkpoints/
+presentation.ipynb
+
+# fortran library
+diffusion3d_virus_town_large.cpython-38-darwin.so
+
+# simulation results
+data/
+images/
+
+# literatures
+literatures/
