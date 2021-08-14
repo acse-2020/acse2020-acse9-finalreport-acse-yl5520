@@ -62,13 +62,13 @@ def update_A(
                    [2, 2, 3, 3, 6, 6, 7, 7, 8, 8],
                    [0, 1, 2, 8, 4, 5, 3, 6, 3, 7]
                    ] = (
-            -h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
-            -h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
-            -h['p_U'], -h['a_inhale'],
-            -h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
-            -h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
-            -h['a_conduct'], -h['p_L'],
-            -xi * gConf['gamma_U'], -xi * gConf['gamma_L']
+            h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
+            h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
+            h['p_U'], h['a_inhale'],
+            h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
+            h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
+            h['a_conduct'], h['p_L'],
+            xi * gConf['gamma_U'], xi * gConf['gamma_L']
         )
 
 
@@ -118,15 +118,15 @@ def solver(
 
     """ === start iteration === """
     # pre processing
-    time_list = [0]
+    t = 0
+    time_list = [t]
     T_list = [extract(T, hosts)]
 
     # iteration body
     for i, xi in enumerate(tqdm(xis, dynamic_ncols=True)):
-        t = time_list[-1] + mConf['dt'] * mConf['ntime']
         update_A(xi, gConf, hosts, A_diag, A_off_diag, T, t)
 
-        T = dv.sim_time_steping_diffusion_calc(
+        T = dv.sim_time_stepping_diffusion_calc(
             T, 1, mConf['nits'], mConf['nits_solv_ng'],
             mConf['relax'], mConf['error_solv'], mConf['error_solv_ng'],
             gConf['dx'], gConf['dy'], gConf['dz'], mConf['dt'], v_n, A_diag,
@@ -135,6 +135,7 @@ def solver(
             gConf['ng'], gConf['ng2']
         )
 
+        t += mConf['dt']
         if (i + 1) % mConf['ntime'] == 0:
             time_list.append(t)
             T_list.append(extract(T, hosts))

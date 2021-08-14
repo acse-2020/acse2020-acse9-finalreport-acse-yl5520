@@ -97,16 +97,16 @@ SUBROUTINE viral_4_eqn_secondary_target(T1_new, T2_new, I_new, V_new, T1, T2, I,
 END SUBROUTINE viral_4_eqn_secondary_target
 
 
-SUBROUTINE sim_time_steping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_ng, relax, &
+SUBROUTINE sim_time_stepping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_ng, relax, &
    error_solv, error_solv_ng, dx, dy, dz, dt, V_n, sigmat, sigma_s_off, kdiff, S, U, I_upwind, &
    I_harmonic, ndim_vel, nx, ny, nz, ng, ng2) 
 ! python call looks like:
-!    T_new = sim_time_steping_diffusion_calc(T_initial, ntime, nits, nits_solv_ng, relax, error_solv,
+!    T_new = sim_time_stepping_diffusion_calc(T_initial, ntime, nits, nits_solv_ng, relax, error_solv,
 !                                            error_solv_ng, dx, dy, dz, dt, V_n, sigmat, sigma_s_off,
 !                                            kdiff, S, U, I_upwind, I_harmonic, ndim_vel, nx, ny, nz, ng, ng2)
 
 ! *******************************************************************************************
-! A simplified version of the `time_steping_diffusion_calc` for not so many groups. 
+! A simplified version of the `time_stepping_diffusion_calc` for not so many groups. 
 ! *******************************************************************************************
 
 ! ntime = no of time steps
@@ -138,18 +138,18 @@ SUBROUTINE sim_time_steping_diffusion_calc(T_new, T_initial, ntime, nits, nits_s
    ALLOCATE(sigma_s_off_pter(nx, ny, nz, ncol_sigma_s))
    fin_sigma_s = 0
 
-   CALL time_steping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_ng, relax, error_solv, &
+   CALL time_stepping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_ng, relax, error_solv, &
       error_solv_ng, dx, dy, dz, dt, V_n, sigmat, sigma_s_off, sigma_s_off_pter, fin_sigma_s,       &
       col_sigma_s, kdiff, S, U, I_upwind, I_harmonic, ndim_vel, ncol_sigma_s, nx, ny, nz, ng, ng2)
    RETURN 
-END SUBROUTINE sim_time_steping_diffusion_calc
+END SUBROUTINE sim_time_stepping_diffusion_calc
 
 
-SUBROUTINE time_steping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_ng, relax, error_solv,  &
+SUBROUTINE time_stepping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_ng, relax, error_solv,  &
    error_solv_ng, dx, dy, dz, dt, V_n, sigmat, sigma_s_off, sigma_s_off_pter, fin_sigma_s, col_sigma_s, &
    kdiff, S, U, I_upwind, I_harmonic, ndim_vel, ncol_sigma_s, nx, ny, nz, ng, ng2)
 ! python call looks like:
-!    T_new = time_steping_diffusion_calc(T_initial, ntime, nits, nits_solv_ng, relax, error_solv,
+!    T_new = time_stepping_diffusion_calc(T_initial, ntime, nits, nits_solv_ng, relax, error_solv,
 !                                        error_solv_ng, dx, dy, dz, dt, V_n, sigmat, sigma_s_off,
 !                                        sigma_s_off_pter, fin_sigma_s, col_sigma_s, kdiff, S, U,
 !                                        I_upwind, I_harmonic, ndim_vel, ncol_sigma_s, nx, ny, nz, ng, ng2)
@@ -460,4 +460,4 @@ SUBROUTINE time_steping_diffusion_calc(T_new, T_initial, ntime, nits, nits_solv_
 
    END DO ! DO ITIME=1,NTIME
    ! print *,'here3'
-END SUBROUTINE time_steping_diffusion_calc
+END SUBROUTINE time_stepping_diffusion_calc
