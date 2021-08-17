@@ -230,61 +230,6 @@ def loadSchedule(conf: Path) -> None:
         sys.exit(1)
 
 
-def getStartDatetime(start: str, days: Tuple) -> datetime:
-    day, time = start.split(' ')
-    day = days.index(day.lower())
-    hour, minute = int(time[:2]), int(time[2:])
-    return datetime(1, 1, day, hour, minute, 0, 0)
-
-
-def getPeriod(period: Dict) -> Dict:
-    rtn = {}
-    for k, v in period.items():
-        rtn[k.lower()] = v.split('-')
-    return rtn
-
-
-def loadSchedule(conf: Path) -> None:
-    """ create function `xi` from schedule configuration
-
-    :param conf: path/to/schedule/json-file
-
-    :return 1: `xi` function
-    """
-    global mConf, xis
-    days = ('', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')
-
-    try:
-        with open(conf, 'r') as fin:
-            conf = json.load(fin)
-        xis = [conf['type']] * mConf['nstep']  # default type
-
-        if conf['details'].items():  # exclude non period time
-            datetime = getStartDatetime(conf['start'], days)
-            period = getPeriod(conf['details'])
-
-            delta = timedelta(days=mConf['dt'])
-            for i in range(mConf['nstep']):
-                datetime += delta
-                time = f'{datetime.hour:02}{datetime.minute:02}'
-
-                # not within period
-                if (
-                    days[datetime.weekday()] not in period
-                    or (
-                        period[days[datetime.weekday()]][0] > time
-                        or period[days[datetime.weekday()]][1] < time
-                    )
-                ):
-                    xis[i] = 1 - conf['type']
-    except KeyError as err:
-        logging.error(err)
-        sys.exit(1)
-    except FileNotFoundError as err:
-        logging.error(err)
-        sys.exit(1)
-
-
 if __name__ == '__main__':
     args = parseInput()
 
