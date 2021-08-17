@@ -158,12 +158,15 @@ def loadGrid(conf: Path, hosts: Hosts) -> None:
         gConf = {
             'nx': hosts.size * 2 + 1, 'ny': hosts.size * 2 + 1, 'nz': 3,
             'ng': 9, 'ng2': 9,
-            "i_upwind": 1, "i_harmonic": 0,
-            "dx": 0.1, "dy": 0.1, "dz": 0.1,
-            "env_0": conf['env_0'], "halflife": conf['halflife'],
-            "ventilation": conf['ventilation'],
-            "gamma_U": conf['gamma_U'], "gamma_L": conf['gamma_L']
+            'i_upwind': 1, 'i_harmonic': 0,
+            'dx': 0.1, 'dy': 0.1, 'dz': 0.1,
+            'env_0': conf['env_0'],
+            'halflife': 1 - (1 / 2 ** (1 / (conf['halflife_min'] / 1440))),
+            'ventilation': conf['ventilation'],
+            'gamma_U': conf['gamma_U'], 'gamma_L': conf['gamma_L']
         }
+#         gConf['halflife'] = 0
+#         gConf['ventilation'] = 0
     except KeyError as err:
         logging.error(err)
         sys.exit(1)
@@ -252,6 +255,8 @@ if __name__ == '__main__':
         }
 
         if args.output:
+            if args.output.split('.')[-1] == 'pkl':
+                args.output = args.output[:-4]
             with open(f'{args.output}.pkl', 'wb') as fout:
                 pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
 

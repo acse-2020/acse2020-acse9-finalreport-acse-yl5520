@@ -26,14 +26,17 @@ def plot_solution(attr: Dict, mode: str, figName: str):
     for i, ax in enumerate(axs.flatten()):
         for j in range(len(mode)):
             if mode[j] == '1':
-                ax.semilogy(attr['t'], attr['data'][:, i, j], label=f'{ls[j]}')
-        ax.set_ylim(1e-9, 1e20)
+                ax.plot(attr['t'], attr['data'][:, i, j], label=f'{ls[j]}')
+        ax.set_yscale('log')
+        ax.set_ylim(bottom=1e-9)
         ax.set_xlabel('time (day)')
         title = 'normal'
         if attr['patients'][i] == 1:
             title = 'patient'
         ax.set_title(title)
         ax.legend(loc='best')
+
+    fig.suptitle('No ventilation - weekday interaction')
 
     plt.tight_layout()
     if figName:

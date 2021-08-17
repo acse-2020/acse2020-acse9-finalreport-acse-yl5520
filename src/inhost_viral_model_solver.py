@@ -64,7 +64,7 @@ def update_A(
                    ] = (
             h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
             h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
-            h['p_U'], h['a_inhale'],
+            h['p_U'], xi * h['a_inhale'],
             h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
             h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
             h['a_conduct'], h['p_L'],
@@ -98,8 +98,9 @@ def solver(
     v_n = np.ones(gConf['ng'])
 
     # advection-diffusion in the system
-    kdiff = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
-    kdiff[:, :, :, -1] = 1.e8
+    kdiff = np.ones((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng'])) * 1e8
+    kdiff = -kdiff
+    kdiff[1:gConf['nx'] - 1, 1:gConf['ny'] - 1, 1:gConf['nz'] - 1, -1] *= -1
 
     # advection velocity
     u = np.zeros((
@@ -134,6 +135,9 @@ def solver(
             mConf['ndim_vel'], gConf['nx'], gConf['ny'], gConf['nz'],
             gConf['ng'], gConf['ng2']
         )
+
+#         with open('tmp.txt', 'a') as fout:
+#             fout.write(str(np.sum(T[:, :, :, 8])) + '\n')
 
         t += mConf['dt']
         if (i + 1) % mConf['ntime'] == 0:
