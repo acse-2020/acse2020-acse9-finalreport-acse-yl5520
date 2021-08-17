@@ -28,23 +28,28 @@ def parseInput() -> argparse.Namespace:
         description='inhost viral dynamic solver driver'
     )
     parser.add_argument(
-        'mConf', nargs='?',
-        default='conf/model-conf.json',
+        '--constant',
+        default='conf/constant-default.json',
         help='path/to/model-conf/json-file'
     )
     parser.add_argument(
-        'hosts', nargs='?',
-        default='conf/hosts-conf.json',
+        '--mConf',
+        default='conf/model-conf-default.json',
+        help='path/to/model-conf/json-file'
+    )
+    parser.add_argument(
+        '--hosts',
+        default='conf/hosts-conf-default.json',
         help='path/to/hosts-conf/json-file'
     )
     parser.add_argument(
-        'gConf', nargs='?',
-        default='conf/grid-conf.json',
+        '--gConf',
+        default='conf/grid-conf-default.json',
         help='path/to/grid-conf/json-file'
     )
     parser.add_argument(
-        'schedule', nargs='?',
-        default='conf/schedule.json',
+        '--schedule',
+        default='conf/schedule-default.json',
         help='path/to/schedule/json-file'
     )
     parser.add_argument(
@@ -76,7 +81,7 @@ def loadConst() -> None:
     global const
 
     try:
-        with open('conf/constant.json', 'r') as fin:
+        with open(args.constant, 'r') as fin:
             const = json.load(fin)
         const = {
             'T1_0': const['T1_0'],
@@ -153,12 +158,70 @@ def loadGrid(conf: Path, hosts: Hosts) -> None:
         gConf = {
             'nx': hosts.size * 2 + 1, 'ny': hosts.size * 2 + 1, 'nz': 3,
             'ng': 9, 'ng2': 9,
-            "i_upwind": 1, "i_harmonic": 0,
-            "dx": 0.1, "dy": 0.1, "dz": 0.1,
-            "env_0": conf['env_0'], "halflife": conf['halflife'],
-            "ventilation": conf['ventilation'],
-            "gamma_U": conf['gamma_U'], "gamma_L": conf['gamma_L']
+            'i_upwind': 1, 'i_harmonic': 0,
+            'dx': 0.1, 'dy': 0.1, 'dz': 0.1,
+            'env_0': conf['env_0'],
+            'halflife': 1 - (1 / 2 ** (1 / (conf['halflife_min'] / 1440))),
+            'ventilation': conf['ventilation'],
+            'gamma_U': conf['gamma_U'], 'gamma_L': conf['gamma_L']
         }
+#         gConf['halflife'] = 0
+#         gConf['ventilation'] = 0
+    except KeyError as err:
+        logging.error(err)
+        sys.exit(1)
+    except FileNotFoundError as err:
+        logging.error(err)
+        sys.exit(1)
+
+
+def getStartDatetime(start: str, days: Tuple) -> datetime:
+    day, time = start.split(' ')
+    day = days.index(day.lower())
+    hour, minute = int(time[:2]), int(time[2:])
+    return datetime(1, 1, day, hour, minute, 0, 0)
+
+
+def getPeriod(period: Dict) -> Dict:
+    rtn = {}
+    for k, v in period.items():
+        rtn[k.lower()] = v.split('-')
+    return rtn
+
+
+def loadSchedule(conf: Path) -> None:
+    """ create function `xi` from schedule configuration
+
+    :param conf: path/to/schedule/json-file
+
+    :return 1: `xi` function
+    """
+    global mConf, xis
+    days = ('', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')
+
+    try:
+        with open(conf, 'r') as fin:
+            conf = json.load(fin)
+        xis = [conf['type']] * mConf['nstep']  # default type
+
+        if conf['details'].items():  # exclude non period time
+            datetime = getStartDatetime(conf['start'], days)
+            period = getPeriod(conf['details'])
+
+            delta = timedelta(days=mConf['dt'])
+            for i in range(mConf['nstep']):
+                datetime += delta
+                time = f'{datetime.hour:02}{datetime.minute:02}'
+
+                # not within period
+                if (
+                    days[datetime.weekday()] not in period
+                    or (
+                        period[days[datetime.weekday()]][0] > time
+                        or period[days[datetime.weekday()]][1] < time
+                    )
+                ):
+                    xis[i] = 1 - conf['type']
     except KeyError as err:
         logging.error(err)
         sys.exit(1)
@@ -247,6 +310,8 @@ if __name__ == '__main__':
         }
 
         if args.output:
+            if args.output.split('.')[-1] == 'pkl':
+                args.output = args.output[:-4]
             with open(f'{args.output}.pkl', 'wb') as fout:
                 pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
 
