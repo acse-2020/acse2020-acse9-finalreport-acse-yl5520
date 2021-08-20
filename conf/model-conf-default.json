@@ -1,7 +1,7 @@
 {
-    "d_sec": 60,
-    "t_day": 30,
-    "ntime": 5,
+    "timestep-size-sec": 60,
+    "simulation-duration-day": 30,
+    "output-step": 5,
     "ndim_vel": 2,
     "nits": 3,
     "nits_solv_ng": 3,

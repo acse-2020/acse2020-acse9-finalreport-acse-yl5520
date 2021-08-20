@@ -9,11 +9,12 @@
 presentation.ipynb
 
 # fortran library
-diffusion3d_virus_town_large.cpython-38-darwin.so
+diffusion3d_virus_town_large.*.so
 
 # simulation results
 data/
 images/
 
 # literatures
+example-report/
 literatures/

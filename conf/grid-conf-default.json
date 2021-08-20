@@ -1,7 +1,5 @@
 {
-    "env_0": 0,
-    "halflife": 0.03125,
-    "ventilation": 0, 
-    "gamma_U": 0.01,
-    "gamma_L": 0.01
+    "initial-environment-virus-concentration": 0,
+    "in-vitro-virus-min-halflife": 45,
+    "environment-day-ventilation-rate": 10
 }

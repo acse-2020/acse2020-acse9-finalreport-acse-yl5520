@@ -43,6 +43,11 @@ def parseInput() -> argparse.Namespace:
         help='path/to/hosts-conf/json-file'
     )
     parser.add_argument(
+        '--dist',
+        default='conf/distribution.json',
+        help='path/to/parameter-distribution/json-file'
+    )
+    parser.add_argument(
         '--gConf',
         default='conf/grid-conf-default.json',
         help='path/to/grid-conf/json-file'
@@ -54,6 +59,7 @@ def parseInput() -> argparse.Namespace:
     )
     parser.add_argument(
         '--output',
+        type=Path,
         help='path/to/store/pkl-file'
     )
     parser.add_argument(
@@ -67,7 +73,8 @@ def parseInput() -> argparse.Namespace:
              'T1, T2, I, V for URT and LRT, then virus in Environment.'
     )
     parser.add_argument(
-        '--figName',
+        '--figname', nargs='?',
+        action='append', type=Path,
         help='path/to/store/plotting'
     )
     args = parser.parse_args()
@@ -84,11 +91,16 @@ def loadConst() -> None:
         with open(args.constant, 'r') as fin:
             const = json.load(fin)
         const = {
-            'T1_0': const['T1_0'],
-            'T2_0': const['T2_0'],
-            'I_0': const['I_0'],
-            'lam': const['lam'],
-            'delta_I': const['delta_I']
+            'T1-U-0': const['default-URT-initial-primary-target-cells-concentration'],
+            'T1-L-0': const['default-LRT-initial-primary-target-cells-concentration'],
+            'T2-U-0': const['default-URT-initial-secondary-target-cells-concentration'],
+            'T2-L-0': const['default-LRT-initial-secondary-target-cells-concentration'],
+            'I-U-0': const['default-URT-initial-infected-cells-concentration'],
+            'I-L-0': const['default-LRT-initial-infected-cells-concentration'],
+            'lambda-U': const['default-URT-secondary-target-cells-recruitment-rate'],
+            'lambda-L': const['default-LRT-secondary-target-cells-recruitment-rate'],
+            'delta-I-U': const['default-URT-infected-cells-base-killing-rate'],
+            'delta-I-L': const['default-LRT-infected-cells-base-killing-rate']
         }
     except KeyError as err:
         logging.error(err)
@@ -109,10 +121,10 @@ def loadModel(conf: Path) -> None:
         with open(conf, 'r') as fin:
             conf = json.load(fin)
         mConf = {
-            'dt': conf['d_sec'] / 86400,  # convert time step unit to day
-            'ntime': conf['ntime'],  # output every n step
-            'nstep': math.ceil(  # steps
-                conf['t_day'] * 86400 / conf['d_sec']
+            'dt': conf['timestep-size-sec'] / 86400,
+            'ntime': conf['output-step'],
+            'nstep': math.ceil(
+                conf['simulation-duration-day'] * 86400 / conf['timestep-size-sec']
             ),
             'ndim_vel': conf['ndim_vel'],
             'nits': conf['nits'],
@@ -129,7 +141,7 @@ def loadModel(conf: Path) -> None:
         sys.exit(1)
 
 
-def loadHosts(conf: Path) -> None:
+def loadHosts(host_conf: Path, dist_conf: Path) -> None:
     """ update hosts instance from file
 
     :param conf: path/to/hosts-conf/json-file
@@ -137,33 +149,35 @@ def loadHosts(conf: Path) -> None:
     global hosts
 
     try:
-        with open(conf, 'r') as fin:
-            hosts = Hosts(json.load(fin), const)
+        with open(host_conf, 'r') as fin_host, open(dist_conf, 'r') as fin_dist:
+            hosts = Hosts(const, json.load(fin_host), json.load(fin_dist))
     except FileNotFoundError as err:
         logging.error(err)
         sys.exit(1)
 
 
-def loadGrid(conf: Path, hosts: Hosts) -> None:
+def loadGrid(conf: Path) -> None:
     """ update grid configuration from file
 
     :param conf: path/to/grid-conf/json-file
-    :param hosts: Hosts instance
     """
     global gConf
 
     try:
         with open(conf, 'r') as fin:
             conf = json.load(fin)
+        length = hosts.length
         gConf = {
-            'nx': hosts.size * 2 + 1, 'ny': hosts.size * 2 + 1, 'nz': 3,
+            'nx': length * 2 + 1, 'ny': length * 2 + 1, 'nz': 3,
             'ng': 9, 'ng2': 9,
-            "i_upwind": 1, "i_harmonic": 0,
-            "dx": 0.1, "dy": 0.1, "dz": 0.1,
-            "env_0": conf['env_0'], "halflife": conf['halflife'],
-            "ventilation": conf['ventilation'],
-            "gamma_U": conf['gamma_U'], "gamma_L": conf['gamma_L']
+            'i_upwind': 1, 'i_harmonic': 0,
+            'dx': 0.1, 'dy': 0.1, 'dz': 0.1,
+            'env_0': conf['initial-environment-virus-concentration'],
+            'halflife': 1 - (1 / 2 ** (1 / (conf['in-vitro-virus-min-halflife'] / 1440))),
+            'ventilation': conf['environment-day-ventilation-rate']
         }
+#         gConf['halflife'] = 0
+#         gConf['ventilation'] = 0
     except KeyError as err:
         logging.error(err)
         sys.exit(1)
@@ -230,6 +244,9 @@ def loadSchedule(conf: Path) -> None:
 if __name__ == '__main__':
     args = parseInput()
 
+    if not args.plot and args.figname:
+        args.plot = [None]
+
     if not args.plot or not args.plot[0]:
         if not args.output and not args.plot:
             logging.error(
@@ -239,24 +256,32 @@ if __name__ == '__main__':
             sys.exit(1)
         loadConst()
         loadModel(args.mConf)
-        loadHosts(args.hosts)
-        loadGrid(args.gConf, hosts)
+        loadHosts(args.hosts, args.dist)
+        loadGrid(args.gConf)
         loadSchedule(args.schedule)
 
         host_values, t_values = solver(mConf, gConf, hosts, xis)
         attr = {
-            'size': hosts.size,
-            'patients': hosts.patients,
+            'size': hosts.length,
+            'title': [h['attribute'] for h in hosts.host],
             'data': host_values,
             't': t_values
         }
 
         if args.output:
-            with open(f'{args.output}.pkl', 'wb') as fout:
+            if args.output.suffix == '.pkl':
+                args.output = Path(args.output.stem)
+            with open(f'data/{args.output.stem}.pkl', 'wb') as fout:
                 pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
 
     if args.plot:
         if args.plot[0]:
             with open(args.plot[0], 'rb') as fin:
                 attr = pickle.load(fin)
-        plot_solution(attr, args.mode, args.figName)
+
+        if not args.figname[0] and args.output:
+            args.figname[0] = Path(args.output.stem)
+        if args.figname[0] and args.figname[0].suffix == '.png':
+            args.figname[0] = Path(args.figname[0].stem)
+
+        plot_solution(attr, args.mode, f'images/{args.figname[0].stem}')
