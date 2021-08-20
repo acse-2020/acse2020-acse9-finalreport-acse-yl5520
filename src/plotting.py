@@ -23,7 +23,7 @@ def plot_solution(attr: Dict, mode: str, figName: str):
     if not isinstance(axs, np.ndarray):
         axs = np.array([axs])
 
-    for i, ax in enumerate(axs.flatten()):
+    for i, ax in enumerate(axs.flatten()[:attr['data'].shape[1]]):
         for j in range(len(mode)):
             if mode[j] == '1':
                 ax.plot(attr['t'], attr['data'][:, i, j], label=f'{ls[j]}')
@@ -36,12 +36,11 @@ def plot_solution(attr: Dict, mode: str, figName: str):
         ax.set_title(title)
         ax.legend(loc='best')
 
-    fig.suptitle('No ventilation - weekday interaction')
-
     plt.tight_layout()
     if figName:
         plt.savefig(figName)
-    plt.show()
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 {
     "hints": {
-        "amount": 4,
-        "sick": 1
+        "amount": 40,
+        "sick": 15
     },
     "hosts": [
         {

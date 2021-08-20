@@ -4,6 +4,7 @@
 
 # standard modules
 import math
+from random import randint
 from typing import Dict, Tuple
 
 
@@ -57,6 +58,7 @@ class Hosts:
         while sick < self.sick:
             self.generateHost(sick=True)
             self.patients.append(1)
+            sick += 1
         while len(self.hosts) < self.total:
             self.generateHost()
             self.patients.append(0)
@@ -86,9 +88,9 @@ class Hosts:
             'I_0_U': self.const['I_0'], 'I_0_L': self.const['I_0'],
             'lam': self.const['lam'], 'delta_I': self.const['delta_I'],
             'V_0_U': 0, 'V_0_L': 0,
-            'beta_U': 0, 'p_U': 0, 'c_U': 0, 'w_U': 0, 'sigma_U': 0,
-            'beta_L': 0, 'p_L': 0, 'c_L': 0, 'w_L': 0, 'sigma_L': 0,
-            'mu': 0, 'a_conduct': 0, 'a_inhale': 0
+            'beta_U': 1e-7, 'p_U': 4.8e3, 'c_U': 50, 'w_U': 3.6e-4, 'sigma_U': 0.01,
+            'beta_L': 1e-6, 'p_L': 3e5, 'c_L': 37, 'w_L': 1e-3, 'sigma_L': 0.11,
+            'mu': randint(0, 10), 'a_conduct': 0.00625, 'a_inhale': 0.00625
         }
 
         if sick:
