@@ -3,6 +3,7 @@
 # version: 3.8.2
 
 # standard modules
+from random import randint, uniform
 from typing import Dict, List, Tuple
 
 # third-party modeuls
@@ -14,35 +15,47 @@ import diffusion3d_virus_town_large as dv
 from .Hosts import Hosts
 
 
-def load_init_terms(gConf: Dict, hosts: Hosts) -> Tuple[List, List]:
-    s = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
+def load_init_values(gConf: Dict, hosts: Hosts) -> List:
     T = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
 
     for h in hosts.host:
-        s[h['x'], h['y'], h['z'], [1, 5]] = h['lambda-U'], h['lambda-L']
         T[h['x'], h['y'], h['z'], :] = (
             h['T1-U-0'], h['T2-U-0'], h['I-U-0'], h['V-U-0'],
             h['T1-L-0'], h['T2-L-0'], h['I-L-0'], h['V-L-0'],
             gConf['env_0']
         )
 
-    return s, T
+    return T
 
 
-def update_A(
+def update_matrix(
     xi: int, gConf: List, hosts: List,
-    A_diag: List, A_off_diag: List, T: List, t: float
+    A_diag: List, A_off_diag: List, s: List,
+    T: List, t: float, dt: float
 ) -> None:
     def delta(delta_I, sigma, mu, t):
         return delta_I * np.e ** (sigma * (t - mu)) if (t >= mu) else delta_I
 
     for h in hosts.host:
+        # lymphocyte recruitment only during infection
+        # prolong emergence day before infection
+        if T[h['x'], h['y'], h['z'], 3] > 0:  # URT
+            s[h['x'], h['y'], h['z'], 1] = h['lambda-U']
+            h['mu-U'] += dt
+        else:
+            s[h['x'], h['y'], h['z'], 1] = 0
+        if T[h['x'], h['y'], h['z'], 7] > 0:  # LRT
+            s[h['x'], h['y'], h['z'], 5] = h['lambda-L']
+            h['mu-L'] += dt
+        else:
+            s[h['x'], h['y'], h['z'], 5] = 0
+            
         A_diag[h['x'], h['y'], h['z'], :] = (
             # T1_U, T2_U
             h['beta-U'] * T[h['x'], h['y'], h['z'], 3],
             h['beta-U'] * T[h['x'], h['y'], h['z'], 3],
             # I_U
-            delta(h['delta-I-U'], h['sigma-U'], h['mu'], t)
+            delta(h['delta-I-U'], h['sigma-U'], h['mu-U'], t)
             + h['w-U'] * T[h['x'], h['y'], h['z'], 1],
             # V_U
             h['c-U'],
@@ -50,7 +63,7 @@ def update_A(
             h['beta-L'] * T[h['x'], h['y'], h['z'], 7],
             h['beta-L'] * T[h['x'], h['y'], h['z'], 7],
             # I_L
-            delta(h['delta-I-L'], h['sigma-L'], h['mu'], t)
+            delta(h['delta-I-L'], h['sigma-L'], h['mu-L'], t)
             + h['w-L'] * T[h['x'], h['y'], h['z'], 5],
             # V_L
             h['c-L'],
@@ -114,7 +127,8 @@ def solver(
     ))
 
     # source term and initial values
-    s, T = load_init_terms(gConf, hosts)
+    s = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
+    T = load_init_values(gConf, hosts)
 
     """ === start iteration === """
     # pre processing
@@ -124,7 +138,7 @@ def solver(
 
     # iteration body
     for i, xi in enumerate(tqdm(xis, dynamic_ncols=True, disable=False)):
-        update_A(xi, gConf, hosts, A_diag, A_off_diag, T, t)
+        update_matrix(xi, gConf, hosts, A_diag, A_off_diag, s, T, t, mConf['dt'])
 
         T = dv.sim_time_stepping_diffusion_calc(
             T, 1, mConf['nits'], mConf['nits_solv_ng'],

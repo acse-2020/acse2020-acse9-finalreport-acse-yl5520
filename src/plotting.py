@@ -8,6 +8,7 @@ from typing import Dict
 # third-party modules
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 
 def plot_solution(attr: Dict, mode: str, figName: str):
@@ -23,18 +24,20 @@ def plot_solution(attr: Dict, mode: str, figName: str):
     if not isinstance(axs, np.ndarray):
         axs = np.array([axs])
 
-    for i, ax in enumerate(axs.flatten()[:attr['data'].shape[1]]):
+    for i, ax in tqdm(list(enumerate(axs.flatten()[:attr['data'].shape[1]]))):
         for j in range(len(mode)):
             if mode[j] == '1':
                 ax.plot(attr['t'], attr['data'][:, i, j], label=f'{ls[j]}')
         ax.set_yscale('symlog')
         ax.set_ylim(bottom=1e-9)
         ax.set_xlabel('time (day)')
+        ax.set_xticks([i for i in range(int(attr['t'][-1]) + 1)])
         ax.set_title(attr['title'][i])
         ax.legend(loc='best')
 
     plt.tight_layout()
     if figName:
+        print(f'saving figure {figName}')
         plt.savefig(figName)
     else:
         plt.show()

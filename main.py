@@ -59,6 +59,7 @@ def parseInput() -> argparse.Namespace:
     )
     parser.add_argument(
         '--output',
+        type=Path,
         help='path/to/store/pkl-file'
     )
     parser.add_argument(
@@ -72,7 +73,8 @@ def parseInput() -> argparse.Namespace:
              'T1, T2, I, V for URT and LRT, then virus in Environment.'
     )
     parser.add_argument(
-        '--figName',
+        '--figname', nargs='?',
+        action='append', type=Path,
         help='path/to/store/plotting'
     )
     args = parser.parse_args()
@@ -242,6 +244,9 @@ def loadSchedule(conf: Path) -> None:
 if __name__ == '__main__':
     args = parseInput()
 
+    if not args.plot and args.figname:
+        args.plot = [None]
+
     if not args.plot or not args.plot[0]:
         if not args.output and not args.plot:
             logging.error(
@@ -264,13 +269,19 @@ if __name__ == '__main__':
         }
 
         if args.output:
-            if args.output.split('.')[-1] == 'pkl':
-                args.output = args.output[:-4]
-            with open(f'{args.output}.pkl', 'wb') as fout:
+            if args.output.suffix == '.pkl':
+                args.output = Path(args.output.stem)
+            with open(f'data/{args.output.stem}.pkl', 'wb') as fout:
                 pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
 
     if args.plot:
         if args.plot[0]:
             with open(args.plot[0], 'rb') as fin:
                 attr = pickle.load(fin)
-        plot_solution(attr, args.mode, args.figName)
+
+        if not args.figname[0] and args.output:
+            args.figname[0] = Path(args.output.stem)
+        if args.figname[0] and args.figname[0].suffix == '.png':
+            args.figname[0] = Path(args.figname[0].stem)
+
+        plot_solution(attr, args.mode, f'images/{args.figname[0].stem}')

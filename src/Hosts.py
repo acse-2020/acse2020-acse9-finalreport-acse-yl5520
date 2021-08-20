@@ -84,10 +84,11 @@ class Hosts:
                 'c-L': self.getPositiveGaussRandom(*distribution['c-L']),
                 'w-L': self.getPositiveGaussRandom(*distribution['w-L']),
                 'sigma-L': self.getPositiveGaussRandom(*distribution['sigma-L']),
-                'mu': 0 if genType // 2 % 2 else self.getPositiveGaussRandom(*distribution['mu']),
-                'gamma-inhale': uniform(.45, .55) if genType < 4 else 0,
-                'gamma-shed': uniform(.30, .40) if genType < 4 else 0
+                'gamma-inhale': uniform(.45, .55) if genType < 4 else 1e-20,
+                'gamma-shed': uniform(.30, .40) * .01 if genType < 4 else 1e-20
             }
+            host['mu-U'] = 0 if genType // 2 % 2 else self.getPositiveGaussRandom(*distribution['mu'])
+            host['mu-L'] = host['mu-U']
             self.host.append(host)
 
     def generateHosts(self, conf: Dict) -> None:
@@ -99,6 +100,8 @@ class Hosts:
         self.length = math.ceil(math.sqrt(self.total))
         for k, v in conf.items():
             self.generateHost(self.getTypeIdFromTypeString(k), v)
+        print(self.host)
+        exit(1)
 
 
 if __name__ == '__main__':
