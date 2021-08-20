@@ -1,0 +1,40 @@
+{
+    "URT-infection-rate": {
+        "vaccine": [5.2e-6, 1.35e-6],
+        "unvaccine": [1.04e-5, 1.35e-5]
+    },
+    "LRT-infection-rate": {
+        "vaccine": [2.88e-6, 1.3e-6],
+        "unvaccine": [5.75e-6, 1.3e-5]
+    },
+    "URT-virus-production-rate": {
+        "normal": [3.34e3, 3.3e3]
+    },
+    "LRT-virus-production-rate": {
+        "normal": [1.45e5, 2.5e5]
+    },
+    "URT-virus-clearance-rate": {
+        "vaccine": [60.94, 35.44],
+        "unvaccine": [40.94, 35.44]
+    },
+    "LRT-virus-clearance-rate": {
+        "vaccine": [70.34, 68.31],
+        "unvaccine": [50.34, 68.31]
+    },
+    "URT-lymphocyte-killing-rate": {
+        "normal": [6.98e-4, 9.1e-4]
+    },
+    "LRT-lymphocyte-killing-rate": {
+        "normal": [2.12e-3, 4.51e-3]
+    },
+    "URT-killing-rate-rate": {
+        "normal": [3.14e-2, 4.42e-2]
+    },
+    "LRT-killing-rate-rate": {
+        "normal": [4.55e-1, 5.85e-1]
+    },
+    "adaptive-immune-response-emergence-day": {
+        "vaccine": [0, 0],
+        "unvaccine": [8.63, 2.83]
+    }
+}

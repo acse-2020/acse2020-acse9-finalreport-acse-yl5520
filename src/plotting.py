@@ -12,9 +12,9 @@ import numpy as np
 
 def plot_solution(attr: Dict, mode: str, figName: str):
     ls = [
-        'T1_URT', 'T2_URT', 'I_URT', 'V_URT',
-        'T1_LRT', 'T2_LRT', 'I_LRT', 'V_LRT',
-        'V_ENV'
+        'T1-URT', 'T2-URT', 'I-URT', 'V-URT',
+        'T1-LRT', 'T2-LRT', 'I-LRT', 'V-LRT',
+        'V-ENV'
     ]
     fig, axs = plt.subplots(
         attr['size'], attr['size'],
@@ -27,13 +27,10 @@ def plot_solution(attr: Dict, mode: str, figName: str):
         for j in range(len(mode)):
             if mode[j] == '1':
                 ax.plot(attr['t'], attr['data'][:, i, j], label=f'{ls[j]}')
-        ax.set_yscale('log')
+        ax.set_yscale('symlog')
         ax.set_ylim(bottom=1e-9)
         ax.set_xlabel('time (day)')
-        title = 'normal'
-        if attr['patients'][i] == 1:
-            title = 'patient'
-        ax.set_title(title)
+        ax.set_title(attr['title'][i])
         ax.legend(loc='best')
 
     plt.tight_layout()

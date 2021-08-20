@@ -18,11 +18,11 @@ def load_init_terms(gConf: Dict, hosts: Hosts) -> Tuple[List, List]:
     s = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
     T = np.zeros((gConf['nx'], gConf['ny'], gConf['nz'], gConf['ng']))
 
-    for h in hosts.hosts:
-        s[h['x'], h['y'], h['z'], [1, 5]] = h['lam']
+    for h in hosts.host:
+        s[h['x'], h['y'], h['z'], [1, 5]] = h['lambda-U'], h['lambda-L']
         T[h['x'], h['y'], h['z'], :] = (
-            h['T1_0_U'], h['T2_0_U'], h['I_0_U'], h['V_0_U'],
-            h['T1_0_L'], h['T2_0_L'], h['I_0_L'], h['V_0_L'],
+            h['T1-U-0'], h['T2-U-0'], h['I-U-0'], h['V-U-0'],
+            h['T1-L-0'], h['T2-L-0'], h['I-L-0'], h['V-L-0'],
             gConf['env_0']
         )
 
@@ -36,45 +36,45 @@ def update_A(
     def delta(delta_I, sigma, mu, t):
         return delta_I * np.e ** (sigma * (t - mu)) if (t >= mu) else delta_I
 
-    for h in hosts.hosts:
+    for h in hosts.host:
         A_diag[h['x'], h['y'], h['z'], :] = (
             # T1_U, T2_U
-            h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
-            h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
+            h['beta-U'] * T[h['x'], h['y'], h['z'], 3],
+            h['beta-U'] * T[h['x'], h['y'], h['z'], 3],
             # I_U
-            delta(h['delta_I'], h['sigma_U'], h['mu'], t)
-            + h['w_U'] * T[h['x'], h['y'], h['z'], 1],
+            delta(h['delta-I-U'], h['sigma-U'], h['mu'], t)
+            + h['w-U'] * T[h['x'], h['y'], h['z'], 1],
             # V_U
-            h['c_U'],
+            h['c-U'],
             # T1_L, T2_L
-            h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
-            h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
+            h['beta-L'] * T[h['x'], h['y'], h['z'], 7],
+            h['beta-L'] * T[h['x'], h['y'], h['z'], 7],
             # I_L
-            delta(h['delta_I'], h['sigma_L'], h['mu'], t)
-            + h['w_L'] * T[h['x'], h['y'], h['z'], 5],
+            delta(h['delta-I-L'], h['sigma-L'], h['mu'], t)
+            + h['w-L'] * T[h['x'], h['y'], h['z'], 5],
             # V_L
-            h['c_L'],
+            h['c-L'],
             # V_env
             gConf['halflife'] + gConf['ventilation']
         )
 
         A_off_diag[h['x'], h['y'], h['z'],
-                   [2, 2, 3, 3, 6, 6, 7, 7, 8, 8],
-                   [0, 1, 2, 8, 4, 5, 3, 6, 3, 7]
+                   [2, 2, 3, 3, 6, 6, 7, 7, 8],
+                   [0, 1, 2, 8, 4, 5, 3, 6, 3]
                    ] = (
-            h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
-            h['beta_U'] * T[h['x'], h['y'], h['z'], 3],
-            h['p_U'], xi * h['a_inhale'],
-            h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
-            h['beta_L'] * T[h['x'], h['y'], h['z'], 7],
-            h['a_conduct'], h['p_L'],
-            xi * gConf['gamma_U'], xi * gConf['gamma_L']
+            h['beta-U'] * T[h['x'], h['y'], h['z'], 3],
+            h['beta-U'] * T[h['x'], h['y'], h['z'], 3],
+            h['p-U'], xi * h['gamma-inhale'],
+            h['beta-L'] * T[h['x'], h['y'], h['z'], 7],
+            h['beta-L'] * T[h['x'], h['y'], h['z'], 7],
+            h['gamma-conduct'], h['p-L'],
+            xi * h['gamma-shed']
         )
 
 
 def extract(T: List, hosts: Hosts) -> List:
     values = []
-    for h in hosts.hosts:
+    for h in hosts.host:
         values.append(T[h['x'], h['y'], h['z'], :])
     return np.array(values)
 
@@ -123,7 +123,7 @@ def solver(
     T_list = [extract(T, hosts)]
 
     # iteration body
-    for i, xi in enumerate(tqdm(xis, dynamic_ncols=True)):
+    for i, xi in enumerate(tqdm(xis, dynamic_ncols=True, disable=False)):
         update_A(xi, gConf, hosts, A_diag, A_off_diag, T, t)
 
         T = dv.sim_time_stepping_diffusion_calc(
