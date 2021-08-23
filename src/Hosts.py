@@ -60,9 +60,9 @@ class Hosts:
         return rtn
 
     def generateHost(self, genType: int, genAmount: int) -> None:
-        x, y = self.getPosition()
         distribution = self.getMusAndSigmas(genType)
         for _ in range(genAmount):
+            x, y = self.getPosition()
             host = {
                 'attribute': self.getTypeStringFromTypeId(genType),
                 'x': x, 'y': y, 'z': 1,
@@ -100,8 +100,6 @@ class Hosts:
         self.length = math.ceil(math.sqrt(self.total))
         for k, v in conf.items():
             self.generateHost(self.getTypeIdFromTypeString(k), v)
-        print(self.host)
-        exit(1)
 
 
 if __name__ == '__main__':
