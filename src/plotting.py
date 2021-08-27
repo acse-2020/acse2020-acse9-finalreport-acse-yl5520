@@ -37,7 +37,7 @@ def plot_solution(attr: Dict, mode: str, figName: str):
 
     plt.tight_layout()
     if figName:
-        print(f'saving figure {figName}')
+        print(f'saving figure {figName}.png')
         plt.savefig(figName)
     else:
         plt.show()

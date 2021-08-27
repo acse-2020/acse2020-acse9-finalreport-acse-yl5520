@@ -63,9 +63,9 @@ def parseInput() -> argparse.Namespace:
         help='path/to/store/pkl-file'
     )
     parser.add_argument(
-        '--plot', nargs='?',
-        action='append',
-        help='plot the input `pkl` or the newly calculate values'
+        '--plot',
+        type=Path,
+        help='path/to/load/pkl-file'
     )
     parser.add_argument(
         '--mode', default='000100010',
@@ -73,8 +73,8 @@ def parseInput() -> argparse.Namespace:
              'T1, T2, I, V for URT and LRT, then virus in Environment.'
     )
     parser.add_argument(
-        '--figname', nargs='?',
-        action='append', type=Path,
+        '--figname',
+        type=Path,
         help='path/to/store/plotting'
     )
     args = parser.parse_args()
@@ -244,16 +244,8 @@ def loadSchedule(conf: Path) -> None:
 if __name__ == '__main__':
     args = parseInput()
 
-    if not args.plot and args.figname:
-        args.plot = [None]
-
-    if not args.plot or not args.plot[0]:
-        if not args.output and not args.plot:
-            logging.error(
-                'require `--output` to store the simulation output ' +
-                'or `--plot` to plot the simulation'
-            )
-            sys.exit(1)
+    # run simulation and store result
+    if args.output:
         loadConst()
         loadModel(args.mConf)
         loadHosts(args.hosts, args.dist)
@@ -268,20 +260,17 @@ if __name__ == '__main__':
             't': t_values
         }
 
-        if args.output:
-            if args.output.suffix == '.pkl':
-                args.output = Path(args.output.stem)
-            with open(f'data/{args.output.stem}.pkl', 'wb') as fout:
-                pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
+        if args.output.suffix == '.pkl':
+            args.output = Path(args.output.stem)
+        with open(f'data/{args.output.stem}.pkl', 'wb') as fout:
+            pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
 
-    if args.plot:
-        if args.plot[0]:
-            with open(args.plot[0], 'rb') as fin:
-                attr = pickle.load(fin)
+    # plot simulation result
+    elif args.plot:
+        with open(args.plot, 'rb') as fin:
+            attr = pickle.load(fin)
 
-        if not args.figname[0] and args.output:
-            args.figname[0] = Path(args.output.stem)
-        if args.figname[0] and args.figname[0].suffix == '.png':
-            args.figname[0] = Path(args.figname[0].stem)
+        if args.figname and args.figname[-4:] == '.png':
+            args.figname = f'images/{args.figname[:-4]}'
 
-        plot_solution(attr, args.mode, f'images/{args.figname[0].stem}')
+        plot_solution(attr, args.mode, args.figname)
