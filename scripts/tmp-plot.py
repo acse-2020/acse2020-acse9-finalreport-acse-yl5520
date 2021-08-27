@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
-data_file = 'data/9hosts-10vent-weekly-interact-30day-nounmaskinfect.pkl'
+data_file = 'data/unmask-unvaccine-cmp-uninfect-and-infect.pkl'
 with open(data_file, 'rb') as fin:
     dic = pickle.load(fin)
 
@@ -21,20 +21,17 @@ ls = [
 ]
 ts = dic['t']
 data = dic['data']
-nums = [1, 4]
+title = dic['title']
+choice = [0, 1]
 
-titles = ['effective infection', 'uneffective infection']
-
-fig, axs = plt.subplots(1, 2, figsize=(16, 5))
-for ax, num, title in tqdm(zip(axs.flatten(), nums, titles)):
-    for j in [0, 1, 2, 3, 8]:
-        ax.plot(ts, data[:, num, j], label=f'{ls[j]}')
+fig, axs = plt.subplots(2, 1, figsize=(8, 10))
+for ax, i in tqdm(list(zip(axs.flatten(), choice))):
+    for j in range(len(ls)):
+        ax.plot(ts, data[:, i, j], label=f'{ls[j]}')
     ax.set_yscale('symlog')
     ax.set_ylim(bottom=1e-9)
-    ax.set_xlabel('time (day)')
+    ax.set_xlabel('time (day)', size=16)
     ax.set_xticks([i for i in range(int(ts[-1]) + 1)])
-    ax.set_title(title)
-    ax.legend(loc='best')
 
 plt.tight_layout()
-plt.show()
+plt.savefig('images/tmp')

@@ -74,7 +74,6 @@ def parseInput() -> argparse.Namespace:
     )
     parser.add_argument(
         '--figname',
-        type=Path,
         help='path/to/store/plotting'
     )
     args = parser.parse_args()
@@ -270,7 +269,10 @@ if __name__ == '__main__':
         with open(args.plot, 'rb') as fin:
             attr = pickle.load(fin)
 
-        if args.figname and args.figname[-4:] == '.png':
-            args.figname = f'images/{args.figname[:-4]}'
+        if args.figname:
+            if args.figname[-4:] == '.png':
+                args.figname = f'images/{args.figname[:-4]}'
+            else:
+                args.figname = f'images/{args.figname}'
 
         plot_solution(attr, args.mode, args.figname)

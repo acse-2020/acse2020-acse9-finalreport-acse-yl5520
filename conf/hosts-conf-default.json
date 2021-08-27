@@ -1,10 +1,10 @@
 {
-    "unmask-unvaccine-uninfect": 1,
-    "unmask-unvaccine-infect": 1,
+    "unmask-unvaccine-uninfect": 0,
+    "unmask-unvaccine-infect": 0,
     "unmask-vaccine-uninfect": 0,
     "unmask-vaccine-infect": 0,
     "mask-unvaccine-uninfect": 0,
     "mask-unvaccine-infect": 0,
-    "mask-vaccine-uninfect": 0,
-    "mask-vaccine-infect": 0
+    "mask-vaccine-uninfect": 63,
+    "mask-vaccine-infect": 1
 }
