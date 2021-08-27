@@ -4,17 +4,5 @@
 # vim editor
 *.swp
 
-# jupyter
-.ipynb_checkpoints/
-presentation.ipynb
-
 # fortran library
 diffusion3d_virus_town_large.*.so
-
-# simulation results
-data/
-images/
-
-# literatures
-example-report/
-literatures/

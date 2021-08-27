@@ -22,7 +22,7 @@ from src.plotting import plot_solution
 def parseInput() -> argparse.Namespace:
     """ parse input and return arguments and parser
 
-    :return 1: Namespace object from argparse
+    :return : Namespace object from argparse
     """
     parser = argparse.ArgumentParser(
         description='inhost viral dynamic solver driver'
@@ -63,9 +63,9 @@ def parseInput() -> argparse.Namespace:
         help='path/to/store/pkl-file'
     )
     parser.add_argument(
-        '--plot', nargs='?',
-        action='append',
-        help='plot the input `pkl` or the newly calculate values'
+        '--plot',
+        type=Path,
+        help='path/to/load/pkl-file'
     )
     parser.add_argument(
         '--mode', default='000100010',
@@ -73,8 +73,7 @@ def parseInput() -> argparse.Namespace:
              'T1, T2, I, V for URT and LRT, then virus in Environment.'
     )
     parser.add_argument(
-        '--figname', nargs='?',
-        action='append', type=Path,
+        '--figname',
         help='path/to/store/plotting'
     )
     args = parser.parse_args()
@@ -126,12 +125,12 @@ def loadModel(conf: Path) -> None:
             'nstep': math.ceil(
                 conf['simulation-duration-day'] * 86400 / conf['timestep-size-sec']
             ),
-            'ndim_vel': conf['ndim_vel'],
-            'nits': conf['nits'],
-            'nits_solv_ng': conf['nits_solv_ng'],
-            'error_solv': conf['error_solv'],
-            'error_solv_ng': conf['error_solv_ng'],
-            'relax': conf['relax']
+            'ndim_vel': 2,
+            'nits': 3,
+            'nits_solv_ng': 3,
+            'error_solv': 1.e-6
+            'error_solv_ng': 1.e-6
+            'relax': 1.
         }
     except KeyError as err:
         logging.error(err)
@@ -144,7 +143,8 @@ def loadModel(conf: Path) -> None:
 def loadHosts(host_conf: Path, dist_conf: Path) -> None:
     """ update hosts instance from file
 
-    :param conf: path/to/hosts-conf/json-file
+    :param host_conf: path/to/hosts-conf/json-file
+    :param dist_conf: path/to/parameter-distribution/json-file
     """
     global hosts
 
@@ -187,6 +187,13 @@ def loadGrid(conf: Path) -> None:
 
 
 def getStartDatetime(start: str, days: Tuple) -> datetime:
+    """ obtain starting datetime from json input
+
+    :param start: string representation of the day and time
+    :param days: a tuple of 3 characters representation of day
+
+    :return : datetime instance
+    """
     day, time = start.split(' ')
     day = days.index(day.lower())
     hour, minute = int(time[:2]), int(time[2:])
@@ -194,6 +201,12 @@ def getStartDatetime(start: str, days: Tuple) -> datetime:
 
 
 def getPeriod(period: Dict) -> Dict:
+    """ obtain time period from json input
+
+    :param period: dictionary from json input
+
+    :return : dictionary with of day and time
+    """
     rtn = {}
     for k, v in period.items():
         rtn[k.lower()] = v.split('-')
@@ -244,16 +257,8 @@ def loadSchedule(conf: Path) -> None:
 if __name__ == '__main__':
     args = parseInput()
 
-    if not args.plot and args.figname:
-        args.plot = [None]
-
-    if not args.plot or not args.plot[0]:
-        if not args.output and not args.plot:
-            logging.error(
-                'require `--output` to store the simulation output ' +
-                'or `--plot` to plot the simulation'
-            )
-            sys.exit(1)
+    # run simulation and store result
+    if args.output:
         loadConst()
         loadModel(args.mConf)
         loadHosts(args.hosts, args.dist)
@@ -268,20 +273,20 @@ if __name__ == '__main__':
             't': t_values
         }
 
-        if args.output:
-            if args.output.suffix == '.pkl':
-                args.output = Path(args.output.stem)
-            with open(f'data/{args.output.stem}.pkl', 'wb') as fout:
-                pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
+        if args.output.suffix == '.pkl':
+            args.output = Path(args.output.stem)
+        with open(f'data/{args.output.stem}.pkl', 'wb') as fout:
+            pickle.dump(attr, fout, pickle.HIGHEST_PROTOCOL)
 
-    if args.plot:
-        if args.plot[0]:
-            with open(args.plot[0], 'rb') as fin:
-                attr = pickle.load(fin)
+    # plot simulation result
+    elif args.plot:
+        with open(args.plot, 'rb') as fin:
+            attr = pickle.load(fin)
 
-        if not args.figname[0] and args.output:
-            args.figname[0] = Path(args.output.stem)
-        if args.figname[0] and args.figname[0].suffix == '.png':
-            args.figname[0] = Path(args.figname[0].stem)
+        if args.figname:
+            if args.figname[-4:] == '.png':
+                args.figname = f'images/{args.figname[:-4]}'
+            else:
+                args.figname = f'images/{args.figname}'
 
-        plot_solution(attr, args.mode, f'images/{args.figname[0].stem}')
+        plot_solution(attr, args.mode, args.figname)
