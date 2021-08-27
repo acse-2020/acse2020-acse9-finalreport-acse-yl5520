@@ -29,3 +29,9 @@ All keys in these six `JSON` files should remain the same in any alternative con
 `hosts-conf-default.json` defines the number of people of each attribute. See `ACSE_FinalReport_Virus_Yuanshen_Liao.pdf` for explanation of attributes.
 
 `schedule-default.json` defines the time for people being inside or outside of the classroom. `"type": 1` indicates people are inside the classroom during the given period of time and are outside the classroom during the non-given period of time, `"type": 0` is vice versa. `"start"` indicates the starting time of the simulation, `"details"` indicates the periods of time. `"start"` and `"details"` must be in the same format. Keys in `"details"` must be the first three characters of a day in a week.
+
+
+
+## Others
+
+`scripts/` contains some python scritps used in development for analysing or plotting simulation output, it is not relevant to the simulation process.
