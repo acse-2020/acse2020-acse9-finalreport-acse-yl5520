@@ -128,8 +128,8 @@ def loadModel(conf: Path) -> None:
             'ndim_vel': 2,
             'nits': 3,
             'nits_solv_ng': 3,
-            'error_solv': 1.e-6
-            'error_solv_ng': 1.e-6
+            'error_solv': 1.e-6,
+            'error_solv_ng': 1.e-6,
             'relax': 1.
         }
     except KeyError as err:
